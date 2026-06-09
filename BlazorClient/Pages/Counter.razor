@@ -1,18 +1,91 @@
-﻿@page "/counter"
+﻿@page "/uiplayground"
 
-<PageTitle>Counter</PageTitle>
+<PageTitle>UI Playground</PageTitle>
 
-<h1>Counter</h1>
+<h1>Blazor UI Playground</h1>
 
+<hr />
+<h2>1️⃣ Counter</h2>
 <p role="status">Current count: @currentCount</p>
-
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
-@code {
-    private int currentCount = 0;
+<hr />
+<h2>2️⃣ Slider Demo</h2>
+<input type="range" min="0" max="100" @bind="sliderValue" />
+<p>Slider value: @sliderValue</p>
 
-    private void IncrementCount()
+<hr />
+<h2>3️⃣ Checkbox / Toggle</h2>
+<label>
+    <input type="checkbox" @bind="isChecked" /> Show message
+</label>
+@if (isChecked)
+{
+    <p>You checked the box! 🎉</p>
+}
+
+<hr />
+<h2>4️⃣ Text Input</h2>
+<input type="text" @bind="userName" placeholder="Enter your name" />
+<p>Hello, @userName!</p>
+
+<hr />
+<h2>5️⃣ Dropdown / Select</h2>
+<select @bind="selectedFruit">
+    <option value="">Select a fruit</option>
+    <option>Apple</option>
+    <option>Banana</option>
+    <option>Cherry</option>
+</select>
+<p>You selected: @selectedFruit</p>
+
+<hr />
+<h2>6️⃣ Dynamic List / Shopping List</h2>
+<ul>
+    @foreach (var item in shoppingList)
     {
-        currentCount++;
+        <li>@item</li>
     }
+</ul>
+<input type="text" @bind="newItem" placeholder="Add new item" />
+<button class="btn btn-secondary" @onclick="AddItem">Add</button>
+
+<hr />
+<h2>7️⃣ Conditional Styling</h2>
+<p class="@GetColorClass()">This text changes color!</p>
+<button class="btn btn-warning" @onclick="ToggleColor">Toggle Color</button>
+
+@code {
+    // Counter
+    private int currentCount = 0;
+    private void IncrementCount() => currentCount++;
+
+    // Slider
+    private int sliderValue = 50;
+
+    // Checkbox
+    private bool isChecked = false;
+
+    // Text input
+    private string userName = "";
+
+    // Dropdown
+    private string selectedFruit = "";
+
+    // Dynamic list
+    private List<string> shoppingList = new List<string> { "Milk", "Bread" };
+    private string newItem = "";
+    private void AddItem()
+    {
+        if (!string.IsNullOrWhiteSpace(newItem))
+        {
+            shoppingList.Add(newItem);
+            newItem = "";
+        }
+    }
+
+    // Conditional styling
+    private bool isRed = true;
+    private void ToggleColor() => isRed = !isRed;
+    private string GetColorClass() => isRed ? "text-danger" : "text-success";
 }
