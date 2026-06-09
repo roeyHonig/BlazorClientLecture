@@ -220,3 +220,26 @@ Missing CORS Headers
     |
     v
 Browser reports CORS failure
+
+
+
+
+UI playground
+User presses key
+        |
+        v
+oninput event fires
+        |
+        v
+Blazor event handler
+        |
+        v
+Update component state
+        |
+        v
+Blazor re-renders UI
+        |
+        v
+(Optional)
+Call REST API
+for search suggestions
