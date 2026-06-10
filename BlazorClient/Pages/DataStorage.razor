@@ -1,0 +1,69 @@
+@page "/dataStorage"
+@inject IJSRuntime JS
+@inject HttpClient Http
+
+
+<div class="theme-container @(theme == "dark" ? "dark" : "light")">
+    <h1 class="theme-header">
+        Theme Demo (Cookie-based)
+    </h1>
+
+    <div class="theme-buttons">
+        <button class="btn btn-dark" @onclick="SetDark">Dark Mode</button>
+        <button class="btn btn-light" @onclick="SetLight">Light Mode</button>
+    </div>
+
+    <p class="theme-info">Current theme: <strong>@theme</strong></p>
+    <button class="btn btn-secondary" @onclick="CallServerTheme">
+    Call Server Theme API
+</button>
+</div>
+<!-- 
+    - Cookies are stored as key/value pairs in the browser
+    - document.cookie does NOT overwrite all cookies
+    - It adds or updates ONE specific cookie
+    - The full cookie string you see is just a display representation
+    - path=/ controls where the cookie is accessible
+-->
+
+@code {
+    private string theme = "light";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // evalutes the JS expression `document.cookie`
+        var cookie = await JS.InvokeAsync<string>("eval", "document.cookie");
+
+        if (cookie.Contains("theme=dark"))
+        {
+            theme = "dark";
+        }
+    }
+
+    private async Task SetDark()
+    {
+        await JS.InvokeVoidAsync("eval", "document.cookie='theme=dark; path=/; Secure'");
+        theme = "dark";
+    }
+
+    private async Task SetLight()
+    {
+        await JS.InvokeVoidAsync("eval", "document.cookie='theme=light; path=/; Secure'");
+        theme = "light";
+    }
+
+    private async Task CallServerTheme()
+    {
+        try
+        {
+            // Minimal call, response goes to console
+            var response = await Http.GetStringAsync(
+                "https://dotnetmvcwebapp1-production.up.railway.app/api/theme");
+            Console.WriteLine("Server response: " + response);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error calling server: " + ex.Message);
+        }
+    }
+}
