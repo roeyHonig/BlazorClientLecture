@@ -1,43 +1,43 @@
-/* Container changes background and text color depending on theme */
+/* Existing theme CSS left unchanged */
 .theme-container {
     min-height: 100vh;
     padding: 2rem;
     transition: background-color 0.5s, color 0.5s;
 }
 
-/* Dark theme */
 .theme-container.dark {
     background-color: #222;
     color: #eee;
 }
 
-/* Light theme */
 .theme-container.light {
     background-color: #fff;
     color: #111;
 }
 
-/* Header styling */
 .theme-header {
     text-align: center;
     font-family: sans-serif;
     margin-bottom: 2rem;
 }
 
-/* Button container */
 .theme-buttons {
     text-align: center;
     margin-bottom: 2rem;
 }
 
-/* Optional: smooth hover effects on buttons */
 .theme-buttons .btn {
     transition: background-color 0.3s, color 0.3s;
     margin: 0 0.5rem;
 }
 
-/* Current theme info */
 .theme-info {
     text-align: center;
     font-size: 1.2rem;
+}
+
+/* LocalStorage and IndexedDB inputs */
+input {
+    margin: 0.5rem 0.5rem 0.5rem 0;
+    padding: 0.3rem;
 }

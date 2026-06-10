@@ -2,7 +2,6 @@
 @inject IJSRuntime JS
 @inject HttpClient Http
 
-
 <div class="theme-container @(theme == "dark" ? "dark" : "light")">
     <h1 class="theme-header">
         Theme Demo (Cookie-based)
@@ -15,31 +14,71 @@
 
     <p class="theme-info">Current theme: <strong>@theme</strong></p>
     <button class="btn btn-secondary" @onclick="CallServerTheme">
-    Call Server Theme API
-</button>
+        Call Server Theme API
+    </button>
+
+    <hr />
+
+    <h2>LocalStorage Demo</h2>
+    <input placeholder="Enter your name" @bind="localName" />
+    <button class="btn btn-primary" @onclick="SaveName">Save Name</button>
+    <button class="btn btn-secondary" @onclick="LoadName">Load Name</button>
+    <p>Stored Name: <strong>@storedName</strong></p>
+
+    <hr />
+
+    <h2>IndexedDB Demo (Products)</h2>
+    <input placeholder="Product Id" @bind="productId" type="number" />
+    <input placeholder="Product Name" @bind="productName" />
+    <button class="btn btn-primary" @onclick="AddProduct">Add Product</button>
+    <button class="btn btn-secondary" @onclick="LoadProducts">Load Products</button>
+
+    <ul>
+        @foreach(var p in products)
+        {
+            <li>@p.Id - @p.Name</li>
+        }
+    </ul>
 </div>
-<!-- 
-    - Cookies are stored as key/value pairs in the browser
-    - document.cookie does NOT overwrite all cookies
-    - It adds or updates ONE specific cookie
-    - The full cookie string you see is just a display representation
-    - path=/ controls where the cookie is accessible
--->
 
 @code {
+    // Cookie theme
     private string theme = "light";
+
+    // LocalStorage
+    private string localName = "";
+    private string storedName = "";
+
+    // IndexedDB
+    private string productId = "";
+    private string productName = "";
+    private List<Product> products = new();
 
     protected override async Task OnInitializedAsync()
     {
-        // evalutes the JS expression `document.cookie`
+        // Cookie
         var cookie = await JS.InvokeAsync<string>("eval", "document.cookie");
+        if (cookie.Contains("theme=dark")) theme = "dark";
 
-        if (cookie.Contains("theme=dark"))
-        {
-            theme = "dark";
-        }
+        // Load LocalStorage
+        storedName = await JS.InvokeAsync<string>("localStorage.getItem", "name") ?? "";
+
+        // Initialize IndexedDB
+        await JS.InvokeVoidAsync("eval", @"
+            if(!window.dbInitialized){
+                let request = indexedDB.open('ProductsDB', 1);
+                request.onupgradeneeded = e => {
+                    let db = e.target.result;
+                    if(!db.objectStoreNames.contains('Products')){
+                        db.createObjectStore('Products', { keyPath: 'Id' });
+                    }
+                };
+                window.dbInitialized = true;
+            }
+        ");
     }
 
+    // Cookie functions
     private async Task SetDark()
     {
         await JS.InvokeVoidAsync("eval", "document.cookie='theme=dark; path=/; Secure'");
@@ -56,7 +95,6 @@
     {
         try
         {
-            // Minimal call, response goes to console
             var response = await Http.GetStringAsync(
                 "https://dotnetmvcwebapp1-production.up.railway.app/api/theme");
             Console.WriteLine("Server response: " + response);
@@ -65,5 +103,60 @@
         {
             Console.WriteLine("Error calling server: " + ex.Message);
         }
+    }
+
+    // LocalStorage functions
+    private async Task SaveName()
+    {
+        await JS.InvokeVoidAsync("localStorage.setItem", "name", localName);
+        //storedName = localName;
+    }
+
+    private async Task LoadName()
+    {
+        storedName = await JS.InvokeAsync<string>("localStorage.getItem", "name") ?? "";
+    }
+
+    // IndexedDB functions
+    private async Task AddProduct()
+    {
+        if(string.IsNullOrWhiteSpace(productId) || string.IsNullOrWhiteSpace(productName))
+            return;
+
+        string script = $@"
+            let request = indexedDB.open('ProductsDB', 1);
+            request.onsuccess = e => {{
+                let db = e.target.result;
+                let tx = db.transaction('Products', 'readwrite');
+                let store = tx.objectStore('Products');
+                store.put({{ Id: {productId}, Name: '{productName}' }});
+            }};
+        ";
+        await JS.InvokeVoidAsync("eval", script);
+        productId = "";
+        productName = "";
+    }
+
+    private async Task LoadProducts()
+    {
+        string script = @"
+            new Promise(resolve => {
+                let request = indexedDB.open('ProductsDB', 1);
+                request.onsuccess = e => {
+                    let db = e.target.result;
+                    let tx = db.transaction('Products', 'readonly');
+                    let store = tx.objectStore('Products');
+                    let getAll = store.getAll();
+                    getAll.onsuccess = () => resolve(getAll.result);
+                };
+            });
+        ";
+        products = await JS.InvokeAsync<List<Product>>("eval", script);
+    }
+
+    public class Product
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
     }
 }
