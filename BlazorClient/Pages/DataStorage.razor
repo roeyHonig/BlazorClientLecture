@@ -39,31 +39,53 @@
             <li>@p.Id - @p.Name</li>
         }
     </ul>
+
+    <hr />
+
+    <h2>Cache API Demo (Products API)</h2>
+    <button class="btn btn-primary" @onclick="FetchProductsNetwork">Load Products (Network)</button>
+    <button class="btn btn-secondary" @onclick="FetchProductsCache">Load Products (Cache)</button>
+    <button class="btn btn-warning" @onclick="ClearProductsCache">Clear</button>
+
+    <ul>
+        @foreach(var p in cachedProducts)
+        {
+            <li>@p.Name - $@p.Price</li>
+        }
+    </ul>
 </div>
 
 @code {
+    // --------------------
     // Cookie theme
+    // --------------------
     private string theme = "light";
 
+    // --------------------
     // LocalStorage
+    // --------------------
     private string localName = "";
     private string storedName = "";
 
+    // --------------------
     // IndexedDB
+    // --------------------
     private string productId = "";
     private string productName = "";
     private List<Product> products = new();
 
+    // --------------------
+    // Cache API
+    // --------------------
+    private List<ProductDto> cachedProducts = new();
+
     protected override async Task OnInitializedAsync()
     {
-        // Cookie
         var cookie = await JS.InvokeAsync<string>("eval", "document.cookie");
         if (cookie.Contains("theme=dark")) theme = "dark";
 
-        // Load LocalStorage
         storedName = await JS.InvokeAsync<string>("localStorage.getItem", "name") ?? "";
 
-        // Initialize IndexedDB
         await JS.InvokeVoidAsync("eval", @"
             if(!window.dbInitialized){
                 let request = indexedDB.open('ProductsDB', 1);
@@ -78,7 +100,9 @@
         ");
     }
 
+    // --------------------
     // Cookie functions
+    // --------------------
     private async Task SetDark()
     {
         await JS.InvokeVoidAsync("eval", "document.cookie='theme=dark; path=/; Secure'");
@@ -105,11 +129,13 @@
         }
     }
 
+    // --------------------
     // LocalStorage functions
+    // --------------------
     private async Task SaveName()
     {
         await JS.InvokeVoidAsync("localStorage.setItem", "name", localName);
-        //storedName = localName;
+        storedName = localName;
     }
 
     private async Task LoadName()
@@ -117,7 +143,9 @@
         storedName = await JS.InvokeAsync<string>("localStorage.getItem", "name") ?? "";
     }
 
+    // --------------------
     // IndexedDB functions
+    // --------------------
     private async Task AddProduct()
     {
         if(string.IsNullOrWhiteSpace(productId) || string.IsNullOrWhiteSpace(productName))
@@ -133,6 +161,7 @@
             }};
         ";
         await JS.InvokeVoidAsync("eval", script);
+
         productId = "";
         productName = "";
     }
@@ -151,12 +180,75 @@
                 };
             });
         ";
+
         products = await JS.InvokeAsync<List<Product>>("eval", script);
     }
 
+    // --------------------
+    // Cache API functions
+    // --------------------
+    private async Task FetchProductsNetwork()
+    {
+        var url = "https://dotnetmvcwebapp1-production.up.railway.app/api/Products2";
+
+        cachedProducts = await Http.GetFromJsonAsync<List<ProductDto>>(url) ?? new();
+
+        var jsonString = System.Text.Json.JsonSerializer.Serialize(cachedProducts);
+
+        string script = $@"
+            caches.open('products-cache').then(cache => {{
+                cache.put('{url}', new Response('{jsonString}', {{
+                    headers: {{ 'Content-Type': 'application/json' }}
+                }}));
+            }});
+        ";
+
+        await JS.InvokeVoidAsync("eval", script);
+    }
+
+    private async Task FetchProductsCache()
+    {
+        string url = "https://dotnetmvcwebapp1-production.up.railway.app/api/Products2";
+
+        string script = $@"
+            new Promise(resolve => {{
+                caches.open('products-cache').then(cache => {{
+                    cache.match('{url}').then(resp => {{
+                        if(!resp) resolve([]);
+                        else resp.json().then(data => resolve(data));
+                    }});
+                }});
+            }});
+        ";
+
+        var result = await JS.InvokeAsync<List<ProductDto>>( "eval", script );
+        cachedProducts = result ?? new();
+    }
+
+    // --------------------
+    // NEW: Clear Cache button
+    // --------------------
+    private async Task ClearProductsCache()
+    {
+        
+
+        // Clear UI so students SEE the effect
+        cachedProducts = new List<ProductDto>();
+    }
+
+    // --------------------
+    // DTOs
+    // --------------------
     public class Product
     {
         public int Id { get; set; }
         public string Name { get; set; } = "";
+    }
+
+    public class ProductDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public decimal Price { get; set; }
     }
 }
