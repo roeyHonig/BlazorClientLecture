@@ -40,6 +40,7 @@ cd BlazorClient
 
 # Run application
 dotnet run
+```
 👉 Blazor Server
 # Create project
 dotnet new blazorserver -o BlazorServerApp
