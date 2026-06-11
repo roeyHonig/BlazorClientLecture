@@ -1,4 +1,3 @@
-
 # 🌐 Introduction to Blazor
 
 Blazor is a modern web framework from Microsoft that allows developers to build interactive web applications using C# instead of JavaScript. It is part of ASP.NET Core and enables full-stack .NET development with a unified language across backend and frontend.
@@ -41,7 +40,10 @@ cd BlazorClient
 # Run application
 dotnet run
 ```
-👉 Blazor Server
+
+## 👉 Blazor Server
+
+```bash
 # Create project
 dotnet new blazorserver -o BlazorServerApp
 
@@ -50,51 +52,68 @@ cd BlazorServerApp
 
 # Run application
 dotnet run
+```
 
 After running, the app is available at:
 
+```
 https://localhost:5001
+```
 
-or a similar URL shown in the terminal.
+---
 
-⚙ How Blazor Works
+# ⚙ How Blazor Works
 
-Blazor follows a component-based architecture similar to React or Angular:
+Blazor follows a **component-based architecture** similar to React or Angular:
 
-Core Concepts
-1. Components
-Reusable UI building blocks
-Defined in .razor files
-Combine HTML + C#
-2. Data Binding
+## Core Concepts
 
-One-way binding:
+### 1. Components
+- Reusable UI building blocks
+- Defined in `.razor` files
+- Combine HTML + C#
 
-<p>@message</p>
+### 2. Data Binding
+- One-way binding:
+  ```razor
+  <p>@message</p>
+  ```
+- Two-way binding:
+  ```razor
+  <input @bind="message" />
+  ```
 
-Two-way binding:
-
-<input @bind="message" />
-3. Event Handling
+### 3. Event Handling
+```razor
 <button @onclick="IncrementCount">Click</button>
-4. Rendering System
-Blazor tracks UI state
-Updates only changed parts of the DOM (diff-based rendering)
-5. Communication
-HttpClient → REST APIs (JSON/XML)
-SignalR → real-time communication (Blazor Server / optional WASM)
-🔄 Blazor Component Lifecycle
+```
+
+### 4. Rendering System
+- Blazor tracks UI state
+- Updates only changed parts of the DOM (diff-based rendering)
+
+### 5. Communication
+- `HttpClient` → REST APIs (JSON/XML)
+- SignalR → real-time communication (Blazor Server / optional WASM)
+
+---
+
+# 🔄 Blazor Component Lifecycle
 
 Each component goes through a lifecycle:
 
-Method	When it runs	Purpose
-OnInitialized	First initialization	Setup logic
-OnInitializedAsync	Async initialization	API calls
-OnParametersSet	When parameters change	React to parent updates
-OnAfterRender	After UI render	DOM access
-OnAfterRenderAsync	Async post-render logic	JS interop
-Dispose	Component removed	Cleanup
-Example Lifecycle Code
+| Method | When it runs | Purpose |
+|--------|-------------|--------|
+| OnInitialized | First initialization | Setup logic |
+| OnInitializedAsync | Async initialization | API calls |
+| OnParametersSet | When parameters change | React to parent updates |
+| OnAfterRender | After UI render | DOM access |
+| OnAfterRenderAsync | Async post-render logic | JS interop |
+| Dispose | Component removed | Cleanup |
+
+## Example Lifecycle Code
+
+```csharp
 @code {
     private string message = "";
 
@@ -118,10 +137,15 @@ Example Lifecycle Code
         Console.WriteLine("Component removed");
     }
 }
-🗂 Blazor Project Structure
+```
+
+---
+
+# 🗂 Blazor Project Structure
 
 A typical Blazor WebAssembly project looks like this:
 
+```
 BlazorClient/
 ├── wwwroot/             # Static files (CSS, JS, images)
 │   ├── css/
@@ -141,11 +165,16 @@ BlazorClient/
 ├── App.razor            # Root component + router
 ├── _Imports.razor       # Global usings
 ├── BlazorClient.csproj  # Project dependencies
-📌 Key Files Explained
-Program.cs
+```
 
+---
+
+## 📌 Key Files Explained
+
+### Program.cs
 Entry point of the application.
 
+```csharp
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.RootComponents.Add<App>("#app");
@@ -157,10 +186,14 @@ builder.Services.AddScoped(sp =>
     });
 
 await builder.Build().RunAsync();
-App.razor
+```
 
+---
+
+### App.razor
 Defines routing for the application.
 
+```razor
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData"
@@ -171,14 +204,24 @@ Defines routing for the application.
         <p>Page not found</p>
     </NotFound>
 </Router>
-_Imports.razor
+```
 
+---
+
+### _Imports.razor
 Global imports for all Razor files.
 
+```razor
 @using System.Net.Http
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Web
-Pages Example
+```
+
+---
+
+### Pages Example
+
+```razor
 @page "/counter"
 
 <h3>Counter</h3>
@@ -195,40 +238,50 @@ Pages Example
         count++;
     }
 }
-Shared Components
+```
 
+---
+
+### Shared Components
 Reusable UI parts like navigation menus or layouts.
 
 Example:
+- MainLayout
+- NavMenu
 
-MainLayout
-NavMenu
-wwwroot
+---
 
+### wwwroot
 Static files served directly to the browser:
+- CSS
+- JavaScript
+- Images
+- index.html (WASM host page)
 
-CSS
-JavaScript
-Images
-index.html (WASM host page)
-🧭 Summary
+---
+
+# 🧭 Summary
 
 Blazor is a modern framework for building web applications using C#.
 
-Key ideas:
-UI is built from components
-Logic and UI live together in .razor files
-Lifecycle methods control initialization and rendering
-HttpClient is used for API communication
-SignalR enables real-time communication (especially in Blazor Server)
-Project structure separates UI, logic, and static assets
-🚀 Final Concept
+### Key ideas:
+
+- UI is built from components
+- Logic and UI live together in `.razor` files
+- Lifecycle methods control initialization and rendering
+- HttpClient is used for API communication
+- SignalR enables real-time communication (especially in Blazor Server)
+- Project structure separates UI, logic, and static assets
+
+---
+
+# 🚀 Final Concept
 
 Blazor allows you to build:
 
-SPA applications (Single Page Applications)
-Real-time apps (with SignalR)
-API-driven UIs
-Full-stack .NET applications using only C#
+- SPA applications (Single Page Applications)
+- Real-time apps (with SignalR)
+- API-driven UIs
+- Full-stack .NET applications using only C#
 
 All without leaving the .NET ecosystem.
